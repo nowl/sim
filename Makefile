@@ -12,7 +12,8 @@ TEST_LIBS := `sdl2-config --libs` -lpthread -lGL
 TEST_OBJ = \
 	djikstra.o \
 	main.o \
-	sdl.o
+	sdl.o \
+	rng.o
 
 ALL_BIN := $(TEST_BIN)
 ALL_OBJ := $(TEST_OBJ)

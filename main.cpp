@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "rng.hpp"
 #include "sdl.hpp"
 #include "djikstra.hpp"
 
@@ -16,6 +17,7 @@ int constant_cost(int x, int y) {
 
 int main(int argc, char *argv[])
 {
+    RNG::init();
 	SDL sdl("test", 1920, 1080);
 
 	int frames = 0;
@@ -30,12 +32,13 @@ int main(int argc, char *argv[])
 				running = false;
 		}
 
-		for (int i=0; i<1000; i++) {
-			Color fg = {(float)rand()/INT_MAX, (float)rand()/INT_MAX, (float)rand()/INT_MAX};
-			//Color bg = {(float)rand()/INT_MAX, (float)rand()/INT_MAX, (float)rand()/INT_MAX};
+		for (int i=0; i<10000; i++) {
+			Color fg = {RNG::f(), RNG::f(), RNG::f()};
 			Color bg = {0, 0, 0};
 			
-			sdl.putchar(rand()%CELLS_HORIZ, rand()%CELLS_VERT, rand()%256, fg, bg);
+			sdl.putchar((RNG::norm() * 5) + CELLS_HORIZ/2,
+                        (RNG::norm() * 5) + CELLS_VERT/2,
+                        RNG::u()%256, fg, bg);
 		}
 			
 		frames++;
