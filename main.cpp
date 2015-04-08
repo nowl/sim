@@ -4,6 +4,7 @@
 #include "rng.hpp"
 #include "sdl.hpp"
 #include "djikstra.hpp"
+#include "message.hpp"
 
 #define MAP_WIDTH 1000
 #define MAP_HEIGHT 1000
@@ -36,12 +37,15 @@ int main(int argc, char *argv[])
 			Color fg = {RNG::f(), RNG::f(), RNG::f()};
 			Color bg = {0, 0, 0};
 			
-			sdl.putchar((RNG::norm() * 5) + CELLS_HORIZ/2,
-                        (RNG::norm() * 5) + CELLS_VERT/2,
+			sdl.putchar((RNG::norm() * 2) + CELLS_HORIZ/2,
+                        (RNG::norm() * 2) + CELLS_VERT/2,
                         RNG::u()%256, fg, bg);
+
+            sdl.putchar(0, 0, '@', fg, bg);
 		}
 			
 		frames++;
+        
 			
 		sdl.draw();
 	}
@@ -59,6 +63,13 @@ int main(int argc, char *argv[])
 								{11, 35}};
 
 	calccosts(map, interface, goals);
+
+    Payload payload;
+    payload.i = 4;
+    //payload.p = {1,2};
+
+    printf("%d\n", payload.i);
+    //printf("%d, %d\n", payload.p.x, payload.p.y);
 
 	return 0;
 }

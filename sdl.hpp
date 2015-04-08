@@ -16,7 +16,7 @@ struct Color {
 //#define CELLS_HORIZ    120
 //#define CELLS_VERT     38
 
-#define CELLS_HORIZ    200
+#define CELLS_HORIZ    120
 #define CELLS_VERT     (38 * CELLS_HORIZ / 120)
 
 // this is the logical size of the screen
@@ -43,12 +43,14 @@ public:
 private:
 	SDL_Window* window;
 	SDL_GLContext context;
-    GLuint vao, vbo[4];
+    GLuint vao, vbo[5];
     GLuint vertexshader, fragmentshader;
     GLuint shaderprogram;
-    GLfloat colorFG[CELLS_HORIZ*CELLS_VERT*3];
-    GLfloat colorBG[CELLS_HORIZ*CELLS_VERT*3];
-    GLubyte displayChar[CELLS_HORIZ*CELLS_VERT];
+    GLfloat inPosition[6*2*CELLS_HORIZ*CELLS_VERT];
+    GLfloat colorFG[6*3*CELLS_HORIZ*CELLS_VERT];
+    GLfloat colorBG[6*3*CELLS_HORIZ*CELLS_VERT];
+    GLubyte displayChar[6*CELLS_HORIZ*CELLS_VERT];
+    GLfloat uvData[6*2*CELLS_HORIZ*CELLS_VERT];
     bool dirty;
     SDL_Event currentSDLEvent;
 	std::string program_name;
