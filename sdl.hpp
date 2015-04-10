@@ -8,15 +8,14 @@
 
 #include <string>
 
-struct Color {
-	float r, g, b;
-};
+#include "color.hpp"
 
 // this is the number of cells across and down the screen
 //#define CELLS_HORIZ    120
 //#define CELLS_VERT     38
 
-#define CELLS_HORIZ    120
+//#define CELLS_HORIZ    120
+#define CELLS_HORIZ    200
 #define CELLS_VERT     (38 * CELLS_HORIZ / 120)
 
 // this is the logical size of the screen
@@ -46,11 +45,10 @@ private:
     GLuint vao, vbo[5];
     GLuint vertexshader, fragmentshader;
     GLuint shaderprogram;
-    GLfloat inPosition[6*2*CELLS_HORIZ*CELLS_VERT];
-    GLfloat colorFG[6*3*CELLS_HORIZ*CELLS_VERT];
-    GLfloat colorBG[6*3*CELLS_HORIZ*CELLS_VERT];
-    GLubyte displayChar[6*CELLS_HORIZ*CELLS_VERT];
-    GLfloat uvData[6*2*CELLS_HORIZ*CELLS_VERT];
+    GLfloat centers[6*2*CELLS_HORIZ*CELLS_VERT];
+    GLfloat colorFG[3*CELLS_HORIZ*CELLS_VERT];
+    GLfloat colorBG[3*CELLS_HORIZ*CELLS_VERT];
+    GLubyte displayChar[CELLS_HORIZ*CELLS_VERT];
     bool dirty;
     SDL_Event currentSDLEvent;
 	std::string program_name;

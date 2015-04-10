@@ -82,68 +82,61 @@ void SDL::setupGL()
     {
         for (int x=0; x<CELLS_HORIZ; x++)
         {
-            for (int j=0; j<12; j++)
-            {
-                int offset = 0;
-                int uv = 0;
-                int index = y*CELLS_HORIZ*12 + x*12 + j;
-                switch (j) {
-                case 0: offset = 9*x; uv = 0; break;
-                case 1: offset = 16*y+16; uv = 16; break;
-                case 2: offset = 9*x+9; uv = 9; break;
-                case 3: offset = 16*y+16; uv = 16; break;
-                case 4: offset = 9*x+9; uv = 9; break;
-                case 5: offset = 16*y; uv = 0; break;
-                case 6: offset = 9*x; uv = 0; break;
-                case 7: offset = 16*y; uv = 0; break;
-                case 8: offset = 9*x; uv = 0; break;
-                case 9: offset = 16*y+16; uv = 16; break;
-                case 10: offset = 9*x+9; uv = 9; break;
-                case 11: offset = 16*y; uv = 0; break;
-                }
-                
-                inPosition[index] = offset;
-                uvData[index] = uv;
-            }
+			centers[y*CELLS_HORIZ*2 + x*2] = x*9 + 4.5;
+			centers[y*CELLS_HORIZ*2 + x*2+1] = y*16 + 8;
         }
     }
 
-    for(int i=0; i<6*3*CELLS_HORIZ*CELLS_VERT; i++) {
+    for(int i=0; i<3*CELLS_HORIZ*CELLS_VERT; i++) {
         colorFG[i] = 1;
         colorBG[i] = 0;
     }
 
-    for(int i=0; i<6*CELLS_HORIZ*CELLS_VERT; i++) {
+    for(int i=0; i<CELLS_HORIZ*CELLS_VERT; i++) {
         displayChar[i] = 0;
     }
+
+	float block[] = {
+		9, 0,
+		0, 0,
+		0, 16,
+		0, 16,
+		9, 16,
+		9, 0
+	};
 
     glGenVertexArrays(1, &(vao));
     glBindVertexArray(vao);
     glGenBuffers(5, vbo);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, 6*2*CELLS_HORIZ*CELLS_VERT * sizeof(GLfloat), inPosition, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 2*CELLS_HORIZ*CELLS_VERT * sizeof(GLfloat), centers, GL_DYNAMIC_DRAW);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribDivisor(0, 1);
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-    glBufferData(GL_ARRAY_BUFFER, 6*3*CELLS_HORIZ*CELLS_VERT * sizeof(GLfloat), colorFG, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 3*CELLS_HORIZ*CELLS_VERT * sizeof(GLfloat), colorFG, GL_DYNAMIC_DRAW);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribDivisor(1, 1);
     glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-    glBufferData(GL_ARRAY_BUFFER, 6*3*CELLS_HORIZ*CELLS_VERT * sizeof(GLfloat), colorBG, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 3*CELLS_HORIZ*CELLS_VERT * sizeof(GLfloat), colorBG, GL_DYNAMIC_DRAW);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribDivisor(2, 1);
     glEnableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
-    glBufferData(GL_ARRAY_BUFFER, 6*CELLS_HORIZ*CELLS_VERT, displayChar, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, CELLS_HORIZ*CELLS_VERT, displayChar, GL_DYNAMIC_DRAW);
     glVertexAttribPointer(3, 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, 0);
+	glVertexAttribDivisor(3, 1);
     glEnableVertexAttribArray(3);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
-    glBufferData(GL_ARRAY_BUFFER, 6*2*CELLS_HORIZ*CELLS_VERT * sizeof(GLfloat), displayChar, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
+    glBufferData(GL_ARRAY_BUFFER, 6*2 * sizeof(GLfloat), block, GL_STATIC_DRAW);
     glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribDivisor(4, 0);
     glEnableVertexAttribArray(4);
 
     vertexshader = glCreateShader(GL_VERTEX_SHADER);
@@ -181,11 +174,11 @@ void SDL::setupGL()
     shaderprogram = glCreateProgram();
     glAttachShader(shaderprogram, vertexshader);
     glAttachShader(shaderprogram, fragmentshader);
-    glBindAttribLocation(shaderprogram, 0, "in_Position");
+    glBindAttribLocation(shaderprogram, 0, "in_Center");
     glBindAttribLocation(shaderprogram, 1, "inFG_Color");
     glBindAttribLocation(shaderprogram, 2, "inBG_Color");
     glBindAttribLocation(shaderprogram, 3, "in_Char");
-    glBindAttribLocation(shaderprogram, 4, "in_UVPosition");
+    glBindAttribLocation(shaderprogram, 4, "in_Position");
     glLinkProgram(shaderprogram);
 
     glGetProgramiv(shaderprogram, GL_LINK_STATUS, (int *)&IsLinked);
@@ -227,38 +220,47 @@ void SDL::setupGL()
     glFrontFace(GL_CW);
     glCullFace(GL_BACK);
     glEnable(GL_CULL_FACE);
+
+	glEnable(GL_BLEND);
+	glBlendEquation( GL_FUNC_ADD );
+	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void SDL::draw() {
+	dirty = true;
     if(dirty) {
         dirty = false;
-        glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+
+		
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		for(int i=0; i<2*CELLS_VERT*CELLS_HORIZ; i++) {
+			centers[i] += ((float)rand()/RAND_MAX - 0.5)*4;
+		}
+		
+		
+        glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);		
         glBufferSubData(GL_ARRAY_BUFFER,
                         0,
-                        6*2*CELLS_HORIZ*CELLS_VERT*sizeof(GLfloat),
-                        inPosition);
+                        2*CELLS_HORIZ*CELLS_VERT*sizeof(GLfloat),
+                        centers);
         glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
         glBufferSubData(GL_ARRAY_BUFFER,
                         0,
-                        6*3*CELLS_HORIZ*CELLS_VERT*sizeof(GLfloat),
+                        3*CELLS_HORIZ*CELLS_VERT*sizeof(GLfloat),
                         colorFG);
         glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
         glBufferSubData(GL_ARRAY_BUFFER,
                         0,
-                        6*3*CELLS_HORIZ*CELLS_VERT*sizeof(GLfloat),
+                        3*CELLS_HORIZ*CELLS_VERT*sizeof(GLfloat),
                         colorBG);
         glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
         glBufferSubData(GL_ARRAY_BUFFER,
                         0,
-                        6*CELLS_HORIZ*CELLS_VERT,
+                        CELLS_HORIZ*CELLS_VERT,
                         displayChar);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
-        glBufferSubData(GL_ARRAY_BUFFER,
-                        0,
-                        6*2*CELLS_HORIZ*CELLS_VERT*sizeof(GLfloat),
-                        uvData);
 
-        glDrawArrays(GL_TRIANGLES, 0, 6*CELLS_HORIZ*CELLS_VERT);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, CELLS_HORIZ*CELLS_VERT);
         SDL_GL_SwapWindow(window);
     }
 }
@@ -279,12 +281,14 @@ SDL::~SDL() {
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(3);
+    glDisableVertexAttribArray(4);
     glDetachShader(shaderprogram, vertexshader);
     glDetachShader(shaderprogram, fragmentshader);
     glDeleteProgram(shaderprogram);
     glDeleteShader(vertexshader);
     glDeleteShader(fragmentshader);
-    glDeleteBuffers(3, vbo);
+    glDeleteBuffers(5, vbo);
     glDeleteVertexArrays(1, &vao);
 
 	SDL_GL_DeleteContext(context);
@@ -295,22 +299,15 @@ SDL::~SDL() {
 void SDL::putchar(int x, int y, unsigned char c, const Color& fg, const Color& bg)
 {
     //int index = (CELLS_VERT-y-1) + x * CELLS_VERT;
-
-    int index = (CELLS_VERT-y-1) * CELLS_HORIZ * 6 + x * 6;
-    for (int i=0; i<6; i++)
-        displayChar[index+i] = c;
+	int index = (CELLS_VERT-y-1) * CELLS_HORIZ + x;
+	displayChar[index] = c;
+	colorFG[index*3] = fg.r;
+	colorFG[index*3+1] = fg.g;
+	colorFG[index*3+2] = fg.b;
+	colorBG[index*3] = bg.r;
+	colorBG[index*3+1] = bg.g;
+	colorBG[index*3+2] = bg.b;
     
-    index = (CELLS_VERT-y-1) * CELLS_HORIZ * 6 * 3 + x * 6 * 3;
-    for (int i=0; i<6; i++)
-    {
-        colorFG[index+3*i] = fg.r;
-        colorFG[index+3*i+1] = fg.g;
-        colorFG[index+3*i+2] = fg.b;
-        colorBG[index+3*i] = bg.r;
-        colorBG[index+3*i+1] = bg.g;
-        colorBG[index+3*i+2] = bg.b;
-    }
-
     dirty = true;
 }
 

@@ -31,19 +31,21 @@ int main(int argc, char *argv[])
 		{
 			if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE)
 				running = false;
+
+			if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_d)
+			{
+				for (int i=0; i<10000; i++) {
+					Color fg = {RNG::f(), RNG::f(), RNG::f()};
+					Color bg = {0, 0, 0};
+					
+					sdl.putchar(RNG::u()%CELLS_HORIZ, RNG::u()%CELLS_VERT,
+								RNG::u()%256, fg, bg);
+
+					//sdl.putchar(0, 0, '@', fg, bg);
+				}
+			}
 		}
 
-		for (int i=0; i<10000; i++) {
-			Color fg = {RNG::f(), RNG::f(), RNG::f()};
-			Color bg = {0, 0, 0};
-			
-			sdl.putchar((RNG::norm() * 2) + CELLS_HORIZ/2,
-                        (RNG::norm() * 2) + CELLS_VERT/2,
-                        RNG::u()%256, fg, bg);
-
-            sdl.putchar(0, 0, '@', fg, bg);
-		}
-			
 		frames++;
         
 			
