@@ -3,6 +3,23 @@
 #include "data.h"
 #include "codepage-437-hex.h"
 
+#include <sys/stat.h>
+
+/*
+static char *read_file(const char *filename)
+{
+	struct stat file_stat;
+	stat(filename, &file_stat);
+	unsigned long size_bytes = file_stat.st_size;
+	char *file_contents = (char *)malloc(size_bytes+1);
+	FILE *f = fopen(filename, "rb");
+	fread(file_contents, 1, size_bytes, f);
+	fclose(f);
+	file_contents[size_bytes] = '\0';
+	return file_contents;
+}
+*/
+
 static void sdldie(const char *msg)
 {
     printf("%s: %s\n", msg, SDL_GetError());
@@ -18,17 +35,21 @@ void SDL::setupwindow()
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
     window = SDL_CreateWindow(program_name.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 							  screen_width, screen_height,
-							  SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_MAXIMIZED | SDL_WINDOW_RESIZABLE |SDL_WINDOW_BORDERLESS);
+							  SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (!window)
         sdldie("Unable to create window");
 
     context = SDL_GL_CreateContext(window);
+
+	if (!context)
+		sdldie("");
 
     SDL_GL_SetSwapInterval(1);
 }
@@ -53,7 +74,7 @@ void SDL::setupGL()
         printf("minimum GL version required 3.3\n");
         exit(-1);
     }
-
+	
     glActiveTexture(GL_TEXTURE0);
     glGenTextures( 1, &texture );
     glBindTexture( GL_TEXTURE_2D, texture );
@@ -140,7 +161,7 @@ void SDL::setupGL()
     glEnableVertexAttribArray(4);
 
     vertexshader = glCreateShader(GL_VERTEX_SHADER);
-    GLchar *vertexsourcePtr = vertexsource;
+    const GLchar *vertexsourcePtr = vertex_shader_src;
     glShaderSource(vertexshader, 1, (const GLchar**)&vertexsourcePtr, 0);
     glCompileShader(vertexshader);
     glGetShaderiv(vertexshader, GL_COMPILE_STATUS, &IsCompiled_VS);
@@ -150,13 +171,13 @@ void SDL::setupGL()
        vertexInfoLog = (char *)malloc(maxLength);
        glGetShaderInfoLog(vertexshader, maxLength, &maxLength, vertexInfoLog);
        printf("vertex shader error: %s\n", vertexInfoLog);
-
+	   printf("%s\n", SDL_GetError());
        free(vertexInfoLog);
        return;
     }
 
     fragmentshader = glCreateShader(GL_FRAGMENT_SHADER);
-    GLchar *fragmentsourcePtr = fragmentsource;
+    const GLchar *fragmentsourcePtr = fragment_shader_src;
     glShaderSource(fragmentshader, 1, (const GLchar**)&fragmentsourcePtr, 0);
     glCompileShader(fragmentshader);
     glGetShaderiv(fragmentshader, GL_COMPILE_STATUS, &IsCompiled_FS);
@@ -174,11 +195,11 @@ void SDL::setupGL()
     shaderprogram = glCreateProgram();
     glAttachShader(shaderprogram, vertexshader);
     glAttachShader(shaderprogram, fragmentshader);
-    glBindAttribLocation(shaderprogram, 0, "in_Center");
-    glBindAttribLocation(shaderprogram, 1, "inFG_Color");
-    glBindAttribLocation(shaderprogram, 2, "inBG_Color");
-    glBindAttribLocation(shaderprogram, 3, "in_Char");
-    glBindAttribLocation(shaderprogram, 4, "in_Position");
+    //glBindAttribLocation(shaderprogram, 0, "in_Center");
+    //glBindAttribLocation(shaderprogram, 1, "inFG_Color");
+    //glBindAttribLocation(shaderprogram, 2, "inBG_Color");
+    //glBindAttribLocation(shaderprogram, 3, "in_Char");
+    //glBindAttribLocation(shaderprogram, 4, "in_Position");
     glLinkProgram(shaderprogram);
 
     glGetProgramiv(shaderprogram, GL_LINK_STATUS, (int *)&IsLinked);
@@ -231,11 +252,10 @@ void SDL::draw() {
     if(dirty) {
         dirty = false;
 
-		
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		for(int i=0; i<2*CELLS_VERT*CELLS_HORIZ; i++) {
-			centers[i] += ((float)rand()/RAND_MAX - 0.5)*4;
+			centers[i] += ((float)rand()/RAND_MAX - 0.5);
 		}
 		
 		
