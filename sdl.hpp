@@ -19,8 +19,8 @@
 //#define CELLS_HORIZ    120
 //#define CELLS_VERT     38
 
-#define CELLS_HORIZ    120
-//#define CELLS_HORIZ    200
+//#define CELLS_HORIZ    120
+#define CELLS_HORIZ    200
 #define CELLS_VERT     (38 * CELLS_HORIZ / 120)
 
 // this is the logical size of the screen

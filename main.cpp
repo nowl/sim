@@ -65,14 +65,14 @@ int main(int argc, char *argv[])
 								{11, 35}};
 
 	calccosts(map, interface, goals);
+	
+	Point point_tmp = {4,5};
 
-    Payload payload;
-    payload.i = 4;
-    //payload.p = {1,2};
+	Message *message = Message::make(0, 0, 0, point_tmp);
 
-    printf("%d\n", payload.i);
-    //printf("%d, %d\n", payload.p.x, payload.p.y);
-
+	Point this_point = message->get_payload<Point>();
+		printf("%d, %d\n", this_point.x, this_point.y);
+	
 	return 0;
 }
 
