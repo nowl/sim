@@ -12,6 +12,7 @@
 #endif
 
 #include <string>
+#include <unordered_map>
 
 #include "color.hpp"
 
@@ -43,6 +44,7 @@ public:
 	void draw();
 	bool pollevent(SDL_Event* event);
 	void putchar(int x, int y, unsigned char c, const Color& fg, const Color& bg);
+	void setTexture(const std::string& filename);
 	
 private:
 	SDL_Window* window;
@@ -58,6 +60,7 @@ private:
     SDL_Event currentSDLEvent;
 	std::string program_name;
 	unsigned int screen_width, screen_height;
+	std::unordered_map<std::string, GLuint> textures;
 
 	void setupwindow();
 	void setupGL();

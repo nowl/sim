@@ -8,7 +8,7 @@ CXXFLAGS := -g -pipe -O2 -Wall \
 	--std=c++11 -D_REENTRANT -DHAVE_OPENGL
 
 TEST_BIN := sim
-TEST_LIBS := `sdl2-config --libs` -lpthread -lGL
+TEST_LIBS := `sdl2-config --libs` -lpthread -lGL -lSDL2_image
 TEST_OBJ = \
 	djikstra.o \
 	main.o \

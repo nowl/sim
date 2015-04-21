@@ -1,22 +1,29 @@
+#include <SDL_image.h>
+#include <sys/stat.h>
+#include <cassert>
+#include <stdint.h>
+
 #include "sdl.hpp"
 
 #include "data.h"
 #include "codepage-437-hex.h"
 
-#include <sys/stat.h>
-
 /*
-static char *read_file(const char *filename)
+struct file_data
+{
+	char *data;
+	unsigned long length;
+};
+
+static void read_file(const char *filename, file_data& data)
 {
 	struct stat file_stat;
 	stat(filename, &file_stat);
-	unsigned long size_bytes = file_stat.st_size;
-	char *file_contents = (char *)malloc(size_bytes+1);
+	data.length = file_stat.st_size;
+	data.data = (char *)malloc(data.length);
 	FILE *f = fopen(filename, "rb");
-	fread(file_contents, 1, size_bytes, f);
+	fread(data.data, 1, data.length, f);
 	fclose(f);
-	file_contents[size_bytes] = '\0';
-	return file_contents;
 }
 */
 
@@ -52,6 +59,10 @@ void SDL::setupwindow()
 		sdldie("");
 
     SDL_GL_SetSwapInterval(1);
+
+	// init SDL_image
+	IMG_Init(IMG_INIT_PNG);
+	
 }
 
 void SDL::setupGL()
@@ -313,6 +324,7 @@ SDL::~SDL() {
 
 	SDL_GL_DeleteContext(context);
 	SDL_DestroyWindow(window);
+	IMG_Quit();
 	SDL_Quit();
 }
 
@@ -344,4 +356,58 @@ bool SDL::pollevent(SDL_Event *event) {
 
 int SDL::getticks() {
     return SDL_GetTicks();
+}
+
+void SDL::setTexture(const std::string& filename)
+{
+	GLuint texture;
+	auto iter = textures.find(filename);
+	
+	if (iter == textures.end())
+	{
+		// load the texture since it's not cached
+		SDL_Surface *surf = IMG_Load(filename.c_str());
+
+		SDL_LockSurface(surf);
+		if (!surf) sdldie("");
+		
+		glActiveTexture(GL_TEXTURE0);
+		glGenTextures( 1, &texture );
+		glBindTexture( GL_TEXTURE_2D, texture );
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+		printf("texture width: %d\n", surf->w);
+		printf("texture height: %d\n", surf->h);
+		printf("texture pixel format: %u\n", surf->format->format);
+
+		assert(surf->format->format == SDL_PIXELFORMAT_ABGR8888);
+		
+		uint32_t *data = (uint32_t*)malloc(surf->w * surf->h * sizeof(uint32_t));
+		uint32_t *datap = (uint32_t*)surf->pixels;
+		int count = 0;
+		for (int y=0; y<surf->h; y++)
+		{
+			for (int x=0; x<surf->w; x++)
+			{
+				data[count++] = datap[x];
+			}
+			datap += surf->pitch/4;
+		}
+
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surf->w,
+					 surf->h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV,
+					 data);
+
+		free(data);
+		SDL_UnlockSurface(surf);
+		SDL_FreeSurface(surf);
+	}
+	else
+	{
+		// otherwise just grab the cached texture
+		texture = iter->second;
+	}
+
+	glBindTexture( GL_TEXTURE_2D, texture);
 }

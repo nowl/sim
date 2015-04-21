@@ -21,10 +21,13 @@ int main(int argc, char *argv[])
     RNG::init();
 	SDL sdl("test", 1920, 1080);
 
+	sdl.setTexture("./test.png");
+
 	int frames = 0;
 	SDL_Event event;
 	bool running = true;
 	uint32_t start_time = sdl.getticks();
+	bool first_time = true;
 	while (running)
 	{
 		while (sdl.pollevent(&event))
@@ -32,9 +35,13 @@ int main(int argc, char *argv[])
 			if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE)
 				running = false;
 
-			if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_d)
+			if ( first_time || (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_d) )
 			{
-				for (int i=0; i<10000; i++) {
+				int num = 10000;
+				if (first_time)
+					num = 100000;
+				first_time = false;				
+				for (int i=0; i<num; i++) {
 					Color fg = {RNG::f(), RNG::f(), RNG::f()};
 					Color bg = {0, 0, 0};
 					

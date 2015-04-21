@@ -46,9 +46,9 @@ const char *fragment_shader_src =
 
 	"void main(void) {\n"
 	"    vec4 texel = texture(in_Texture, UV);\n"
-	
-	"    if(texel.r != 0)\n"
-	"        fragcolor = vec4(fg_Color, 1);\n"
-	"    else\n"
-	"        fragcolor = vec4(bg_Color, 0);\n"
+	"    fragcolor = texel;\n"
+	"    //if(texel.a != 0)\n"
+	"    //    fragcolor = vec4(fg_Color, 1);\n"
+	"    //else\n"
+	"    //    fragcolor = vec4(bg_Color, 0);\n"
 	"}\n";
