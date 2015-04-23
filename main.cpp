@@ -37,15 +37,16 @@ int main(int argc, char *argv[])
 
 			if ( first_time || (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_d) )
 			{
-				int num = 10000;
+				sdl.clearBuffers();
+				int num = 50000;
 				if (first_time)
-					num = 100000;
+					num = 100;
 				first_time = false;				
 				for (int i=0; i<num; i++) {
 					Color fg = {RNG::f(), RNG::f(), RNG::f()};
 					Color bg = {0, 0, 0};
 					
-					sdl.putsprite(RNG::u()%CELLS_HORIZ, RNG::u()%CELLS_VERT,
+					sdl.addSprite(RNG::f() * CELLS_HORIZ*16, RNG::f() * CELLS_VERT*16,
 								  RNG::u()%2 * 16, 0, fg, bg);
 
 					//sdl.putchar(0, 0, '@', fg, bg);

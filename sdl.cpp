@@ -8,6 +8,8 @@
 #include "data.h"
 #include "codepage-437-hex.h"
 
+#define MAX_OBJECTS 50000
+
 /*
 struct file_data
 {
@@ -110,25 +112,6 @@ void SDL::setupGL()
                  codepage437_image.height, 0, GL_RED, GL_UNSIGNED_BYTE,
                  alpha_vals);
 
-    for (int y=0; y<CELLS_VERT; y++)
-    {
-        for (int x=0; x<CELLS_HORIZ; x++)
-        {
-			centers[y*CELLS_HORIZ*2 + x*2] = x*9 + 4.5;
-			centers[y*CELLS_HORIZ*2 + x*2+1] = y*16 + 8;
-        }
-    }
-
-    for(int i=0; i<3*CELLS_HORIZ*CELLS_VERT; i++) {
-        colorFG[i] = 1;
-        colorBG[i] = 0;
-    }
-
-    for(int i=0; i<CELLS_HORIZ*CELLS_VERT; i++) {
-        displaySpriteX[i] = 0;
-        displaySpriteY[i] = 0;
-    }
-
 	float block[] = {
 		16, 0,
 		0, 0,
@@ -143,32 +126,32 @@ void SDL::setupGL()
     glGenBuffers(6, vbo);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, 2*CELLS_HORIZ*CELLS_VERT * sizeof(GLfloat), centers, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glBufferData(GL_ARRAY_BUFFER, MAX_OBJECTS * 2 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	glVertexAttribDivisor(0, 1);
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-    glBufferData(GL_ARRAY_BUFFER, 3*CELLS_HORIZ*CELLS_VERT * sizeof(GLfloat), colorFG, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glBufferData(GL_ARRAY_BUFFER, MAX_OBJECTS * 3 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glVertexAttribDivisor(1, 1);
     glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-    glBufferData(GL_ARRAY_BUFFER, 3*CELLS_HORIZ*CELLS_VERT * sizeof(GLfloat), colorBG, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glBufferData(GL_ARRAY_BUFFER, MAX_OBJECTS * 3 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glVertexAttribDivisor(2, 1);
     glEnableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
-    glBufferData(GL_ARRAY_BUFFER, CELLS_HORIZ*CELLS_VERT, displaySpriteX, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(3, 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, 0);
+	glBufferData(GL_ARRAY_BUFFER, MAX_OBJECTS * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
+	glVertexAttribPointer(3, 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, 0);
 	glVertexAttribDivisor(3, 1);
     glEnableVertexAttribArray(3);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
-    glBufferData(GL_ARRAY_BUFFER, CELLS_HORIZ*CELLS_VERT, displaySpriteY, GL_DYNAMIC_DRAW);
-    glVertexAttribPointer(4, 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, 0);
+	glBufferData(GL_ARRAY_BUFFER, MAX_OBJECTS * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
+	glVertexAttribPointer(4, 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, 0);
 	glVertexAttribDivisor(4, 1);
     glEnableVertexAttribArray(4);
 
@@ -273,39 +256,36 @@ void SDL::draw() {
 
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		for(int i=0; i<2*CELLS_VERT*CELLS_HORIZ; i++) {
-			centers[i] += ((float)rand()/RAND_MAX - 0.5);
-		}
-		
-		
         glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);		
         glBufferSubData(GL_ARRAY_BUFFER,
                         0,
-                        2*CELLS_HORIZ*CELLS_VERT*sizeof(GLfloat),
-                        centers);
+                        centers.size() * sizeof(GLfloat),
+                        &centers[0]);
         glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
         glBufferSubData(GL_ARRAY_BUFFER,
                         0,
-                        3*CELLS_HORIZ*CELLS_VERT*sizeof(GLfloat),
-                        colorFG);
+                        colorFG.size() * sizeof(GLfloat),
+                        &colorFG[0]);
         glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
         glBufferSubData(GL_ARRAY_BUFFER,
                         0,
-                        3*CELLS_HORIZ*CELLS_VERT*sizeof(GLfloat),
-                        colorBG);
+                        colorBG.size() * sizeof(GLfloat),
+                        &colorBG[0]);
         glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
         glBufferSubData(GL_ARRAY_BUFFER,
                         0,
-                        CELLS_HORIZ*CELLS_VERT,
-                        displaySpriteX);
+                        displaySpriteX.size(),
+                        &displaySpriteX[0]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
         glBufferSubData(GL_ARRAY_BUFFER,
                         0,
-                        CELLS_HORIZ*CELLS_VERT,
-                        displaySpriteY);
+                        displaySpriteY.size(),
+                        &displaySpriteY[0]);
 
+		printf("drawing %zu objects\n", displaySpriteX.size());
+		
 
-        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, CELLS_HORIZ*CELLS_VERT);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, displaySpriteX.size());
         SDL_GL_SwapWindow(window);
     }
 }
@@ -342,19 +322,28 @@ SDL::~SDL() {
 	SDL_Quit();
 }
 
-void SDL::putsprite(int x, int y, unsigned char sprite_x, unsigned char sprite_y, const Color& fg, const Color& bg)
+void SDL::clearBuffers()
 {
-    //int index = (CELLS_VERT-y-1) + x * CELLS_VERT;
-	int index = (CELLS_VERT-y-1) * CELLS_HORIZ + x;
-	displaySpriteX[index] = sprite_x;
-	displaySpriteY[index] = sprite_y;
-	colorFG[index*3] = fg.r;
-	colorFG[index*3+1] = fg.g;
-	colorFG[index*3+2] = fg.b;
-	colorBG[index*3] = bg.r;
-	colorBG[index*3+1] = bg.g;
-	colorBG[index*3+2] = bg.b;
-    
+	centers.clear();
+	colorFG.clear();
+	colorBG.clear();
+	displaySpriteX.clear();
+	displaySpriteY.clear();
+}
+
+void SDL::addSprite(float x, float y, int tex_x, int tex_y, const Color& fg, const Color& bg)
+{
+	centers.push_back(x);
+	centers.push_back(HEIGHT - y - 1);
+	colorFG.push_back(fg.r);
+	colorFG.push_back(fg.g);
+	colorFG.push_back(fg.b);
+	colorBG.push_back(bg.r);
+	colorBG.push_back(bg.g);
+	colorBG.push_back(bg.b);
+	displaySpriteX.push_back(tex_x);
+	displaySpriteY.push_back(tex_y);
+	    
     dirty = true;
 }
 

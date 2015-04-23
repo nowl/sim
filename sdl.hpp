@@ -1,6 +1,8 @@
 #ifndef __SDL_HPP__
 #define __SDL_HPP__
 
+#include <vector>
+
 #include <SDL.h>
 
 #define GL_GLEXT_PROTOTYPES
@@ -21,7 +23,7 @@
 //#define CELLS_VERT     38
 
 //#define CELLS_HORIZ    120
-#define CELLS_HORIZ    50
+#define CELLS_HORIZ    60
 #define CELLS_VERT     (38 * CELLS_HORIZ / 120)
 
 // this is the logical size of the screen
@@ -43,8 +45,9 @@ public:
 	int getticks();
 	void draw();
 	bool pollevent(SDL_Event* event);
-	void putsprite(int x, int y, unsigned char sprite_x, unsigned char sprite_y, const Color& fg, const Color& bg);
 	void setTexture(const std::string& filename);
+	void clearBuffers();
+	void addSprite(float x, float y, int tex_x, int tex_y, const Color& fg, const Color& bg);
 	
 private:
 	SDL_Window* window;
@@ -52,11 +55,18 @@ private:
     GLuint vao, vbo[6];
     GLuint vertexshader, fragmentshader;
     GLuint shaderprogram;
+	std::vector<GLfloat> centers;
+	std::vector<GLfloat> colorFG;
+	std::vector<GLfloat> colorBG;
+	std::vector<GLubyte> displaySpriteX;
+	std::vector<GLubyte> displaySpriteY;
+	/*
     GLfloat centers[6*2*CELLS_HORIZ*CELLS_VERT];
     GLfloat colorFG[3*CELLS_HORIZ*CELLS_VERT];
     GLfloat colorBG[3*CELLS_HORIZ*CELLS_VERT];
     GLubyte displaySpriteX[CELLS_HORIZ*CELLS_VERT];
     GLubyte displaySpriteY[CELLS_HORIZ*CELLS_VERT];
+	*/
     bool dirty;
     SDL_Event currentSDLEvent;
 	std::string program_name;
