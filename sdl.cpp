@@ -125,21 +125,22 @@ void SDL::setupGL()
     }
 
     for(int i=0; i<CELLS_HORIZ*CELLS_VERT; i++) {
-        displayChar[i] = 0;
+        displaySpriteX[i] = 0;
+        displaySpriteY[i] = 0;
     }
 
 	float block[] = {
-		9, 0,
+		16, 0,
 		0, 0,
 		0, 16,
 		0, 16,
-		9, 16,
-		9, 0
+		16, 16,
+		16, 0
 	};
 
     glGenVertexArrays(1, &(vao));
     glBindVertexArray(vao);
-    glGenBuffers(5, vbo);
+    glGenBuffers(6, vbo);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
     glBufferData(GL_ARRAY_BUFFER, 2*CELLS_HORIZ*CELLS_VERT * sizeof(GLfloat), centers, GL_DYNAMIC_DRAW);
@@ -160,16 +161,23 @@ void SDL::setupGL()
     glEnableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
-    glBufferData(GL_ARRAY_BUFFER, CELLS_HORIZ*CELLS_VERT, displayChar, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, CELLS_HORIZ*CELLS_VERT, displaySpriteX, GL_DYNAMIC_DRAW);
     glVertexAttribPointer(3, 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, 0);
 	glVertexAttribDivisor(3, 1);
     glEnableVertexAttribArray(3);
 
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
-    glBufferData(GL_ARRAY_BUFFER, 6*2 * sizeof(GLfloat), block, GL_STATIC_DRAW);
-    glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, 0, 0);
-	glVertexAttribDivisor(4, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
+    glBufferData(GL_ARRAY_BUFFER, CELLS_HORIZ*CELLS_VERT, displaySpriteY, GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(4, 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, 0);
+	glVertexAttribDivisor(4, 1);
     glEnableVertexAttribArray(4);
+
+	
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[5]);
+    glBufferData(GL_ARRAY_BUFFER, 6*2 * sizeof(GLfloat), block, GL_STATIC_DRAW);
+    glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribDivisor(5, 0);
+    glEnableVertexAttribArray(5);
 
     vertexshader = glCreateShader(GL_VERTEX_SHADER);
     const GLchar *vertexsourcePtr = vertex_shader_src;
@@ -289,7 +297,13 @@ void SDL::draw() {
         glBufferSubData(GL_ARRAY_BUFFER,
                         0,
                         CELLS_HORIZ*CELLS_VERT,
-                        displayChar);
+                        displaySpriteX);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
+        glBufferSubData(GL_ARRAY_BUFFER,
+                        0,
+                        CELLS_HORIZ*CELLS_VERT,
+                        displaySpriteY);
+
 
         glDrawArraysInstanced(GL_TRIANGLES, 0, 6, CELLS_HORIZ*CELLS_VERT);
         SDL_GL_SwapWindow(window);
@@ -328,11 +342,12 @@ SDL::~SDL() {
 	SDL_Quit();
 }
 
-void SDL::putchar(int x, int y, unsigned char c, const Color& fg, const Color& bg)
+void SDL::putsprite(int x, int y, unsigned char sprite_x, unsigned char sprite_y, const Color& fg, const Color& bg)
 {
     //int index = (CELLS_VERT-y-1) + x * CELLS_VERT;
 	int index = (CELLS_VERT-y-1) * CELLS_HORIZ + x;
-	displayChar[index] = c;
+	displaySpriteX[index] = sprite_x;
+	displaySpriteY[index] = sprite_y;
 	colorFG[index*3] = fg.r;
 	colorFG[index*3+1] = fg.g;
 	colorFG[index*3+2] = fg.b;
@@ -381,6 +396,11 @@ void SDL::setTexture(const std::string& filename)
 		printf("texture height: %d\n", surf->h);
 		printf("texture pixel format: %u\n", surf->format->format);
 
+		GLint texture_width_loc = glGetUniformLocation(shaderprogram, "texture_width" );
+		glUniform1i(texture_width_loc, surf->w);
+		GLint texture_height_loc = glGetUniformLocation(shaderprogram, "texture_height" );
+		glUniform1i(texture_height_loc, surf->h);
+		
 		assert(surf->format->format == SDL_PIXELFORMAT_ABGR8888);
 		
 		uint32_t *data = (uint32_t*)malloc(surf->w * surf->h * sizeof(uint32_t));

@@ -3,20 +3,18 @@ static const char *vertex_shader_src =
 	"layout(location = 0) in  vec2 in_Center;\n"
 	"layout(location = 1) in  vec3 inFG_Color;\n"
 	"layout(location = 2) in  vec3 inBG_Color;\n"
-	"layout(location = 3) in  float in_Char;\n"
-	"layout(location = 4) in  vec2 in_Position;\n"
+	"layout(location = 3) in  float in_SpriteX;\n"
+	"layout(location = 4) in  float in_SpriteY;\n"
+	"layout(location = 5) in  vec2 in_Position;\n"
 
 	"uniform mat4 MVP;\n"
-	
-	"#define TEXTURE_WIDTH 304\n"
-	"#define TEXTURE_HEIGHT 144\n"
+	"uniform int texture_width;\n"
+	"uniform int texture_height;\n"
 
 	"vec2 find_uv() {\n"
-	"    int char_x = int(in_Char) % 32;\n"
-	"    int char_y = int(in_Char) / 32;\n"
-	"    float x_pos = 8 + char_x*9 + in_Position.x;\n"
-	"    float y_pos = TEXTURE_HEIGHT - (8 + (7-char_y)*16 + in_Position.y);\n"
-	"    return vec2(x_pos/TEXTURE_WIDTH, y_pos/TEXTURE_HEIGHT);\n"
+	"    float x_pos = in_SpriteX + in_Position.x;\n"
+	"    float y_pos = texture_height - in_SpriteY + in_Position.y - 1;\n"
+	"    return vec2(x_pos/texture_width, y_pos/texture_height);\n"
 	"}\n"
 
 	"out vec3 fg_Color;\n"

@@ -3,7 +3,7 @@
 #CXX := g++
 CXX := clang++
 
-CXXFLAGS := -g -pipe -O2 -Wall \
+CXXFLAGS := -g -pipe -O2 -Wall -Wextra \
 	-I. `sdl2-config --cflags` \
 	--std=c++11 -D_REENTRANT -DHAVE_OPENGL
 

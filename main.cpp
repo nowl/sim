@@ -45,8 +45,8 @@ int main(int argc, char *argv[])
 					Color fg = {RNG::f(), RNG::f(), RNG::f()};
 					Color bg = {0, 0, 0};
 					
-					sdl.putchar(RNG::u()%CELLS_HORIZ, RNG::u()%CELLS_VERT,
-								RNG::u()%256, fg, bg);
+					sdl.putsprite(RNG::u()%CELLS_HORIZ, RNG::u()%CELLS_VERT,
+								  RNG::u()%2 * 16, 0, fg, bg);
 
 					//sdl.putchar(0, 0, '@', fg, bg);
 				}

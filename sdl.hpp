@@ -21,7 +21,7 @@
 //#define CELLS_VERT     38
 
 //#define CELLS_HORIZ    120
-#define CELLS_HORIZ    200
+#define CELLS_HORIZ    50
 #define CELLS_VERT     (38 * CELLS_HORIZ / 120)
 
 // this is the logical size of the screen
@@ -43,19 +43,20 @@ public:
 	int getticks();
 	void draw();
 	bool pollevent(SDL_Event* event);
-	void putchar(int x, int y, unsigned char c, const Color& fg, const Color& bg);
+	void putsprite(int x, int y, unsigned char sprite_x, unsigned char sprite_y, const Color& fg, const Color& bg);
 	void setTexture(const std::string& filename);
 	
 private:
 	SDL_Window* window;
 	SDL_GLContext context;
-    GLuint vao, vbo[5];
+    GLuint vao, vbo[6];
     GLuint vertexshader, fragmentshader;
     GLuint shaderprogram;
     GLfloat centers[6*2*CELLS_HORIZ*CELLS_VERT];
     GLfloat colorFG[3*CELLS_HORIZ*CELLS_VERT];
     GLfloat colorBG[3*CELLS_HORIZ*CELLS_VERT];
-    GLubyte displayChar[CELLS_HORIZ*CELLS_VERT];
+    GLubyte displaySpriteX[CELLS_HORIZ*CELLS_VERT];
+    GLubyte displaySpriteY[CELLS_HORIZ*CELLS_VERT];
     bool dirty;
     SDL_Event currentSDLEvent;
 	std::string program_name;
