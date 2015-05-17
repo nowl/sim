@@ -8,8 +8,8 @@ CXXFLAGS := -g -pipe -O2 -Wall \
 	-I /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/System/Library/Frameworks/OpenGL.framework/Versions/A/Headers \
 	--std=c++11 -D_REENTRANT -DHAVE_OPENGL
 
-TEST_BIN := sim.dylib
-TEST_LIBS := -F /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/System/Library/Frameworks -F/Library/Frameworks -framework SDL2 -framework OpenGL -lpthread -dynamiclib
+TEST_BIN := sim
+TEST_LIBS := -F /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.10.sdk/System/Library/Frameworks -F/Library/Frameworks -framework SDL2 -framework OpenGL -lpthread
 TEST_OBJ = \
 	djikstra.o \
 	main.o \

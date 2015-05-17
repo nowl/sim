@@ -21,13 +21,21 @@ int main(int argc, char *argv[])
     RNG::init();
 	SDL sdl("test", 1920, 1080);
 
-	sdl.setTexture("./test.png");
-
 	int frames = 0;
 	SDL_Event event;
 	bool running = true;
 	uint32_t start_time = sdl.getticks();
-	bool first_time = true;
+
+	for (int i=0; i<10000; i++) {
+		Color fg = {RNG::f(), RNG::f(), RNG::f()};
+		Color bg = {0, 0, 0};
+					
+		sdl.putchar(RNG::u()%CELLS_HORIZ, RNG::u()%CELLS_VERT,
+					RNG::u()%256, fg, bg);
+		
+		//sdl.putchar(0, 0, '@', fg, bg);
+	}
+	
 	while (running)
 	{
 		while (sdl.pollevent(&event))
@@ -35,21 +43,16 @@ int main(int argc, char *argv[])
 			if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE)
 				running = false;
 
-			if ( first_time || (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_d) )
+			if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_d)
 			{
-				sdl.clearBuffers();
-				int num = 50000;
-				if (first_time)
-					num = 100;
-				first_time = false;				
-				for (int i=0; i<num; i++) {
+				for (int i=0; i<10000; i++) {
 					Color fg = {RNG::f(), RNG::f(), RNG::f()};
 					Color bg = {0, 0, 0};
 					
-					sdl.addSprite(RNG::f() * CELLS_HORIZ*16, RNG::f() * CELLS_VERT*16,
-								  RNG::u()%2 * 16, 0, fg, bg);
+					sdl.putchar(RNG::u()%CELLS_HORIZ, RNG::u()%CELLS_VERT,
+								RNG::u()%256, fg, bg);
 
-					//sdl.putchar(0, 0, '@', fg, bg);
+					sdl.putchar(0, 0, '@', fg, bg);
 				}
 			}
 		}

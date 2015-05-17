@@ -1,33 +1,7 @@
-#include <SDL_image.h>
-#include <sys/stat.h>
-#include <cassert>
-#include <stdint.h>
-
 #include "sdl.hpp"
 
 #include "data.h"
 #include "codepage-437-hex.h"
-
-#define MAX_OBJECTS 50000
-
-/*
-struct file_data
-{
-	char *data;
-	unsigned long length;
-};
-
-static void read_file(const char *filename, file_data& data)
-{
-	struct stat file_stat;
-	stat(filename, &file_stat);
-	data.length = file_stat.st_size;
-	data.data = (char *)malloc(data.length);
-	FILE *f = fopen(filename, "rb");
-	fread(data.data, 1, data.length, f);
-	fclose(f);
-}
-*/
 
 static void sdldie(const char *msg)
 {
@@ -61,10 +35,6 @@ void SDL::setupwindow()
 		sdldie("");
 
     SDL_GL_SetSwapInterval(1);
-
-	// init SDL_image
-	IMG_Init(IMG_INIT_PNG);
-	
 }
 
 void SDL::setupGL()
@@ -112,55 +82,66 @@ void SDL::setupGL()
                  codepage437_image.height, 0, GL_RED, GL_UNSIGNED_BYTE,
                  alpha_vals);
 
+    for (int y=0; y<CELLS_VERT; y++)
+    {
+        for (int x=0; x<CELLS_HORIZ; x++)
+        {
+			centers[y*CELLS_HORIZ*2 + x*2] = x*9 + 4.5;
+			centers[y*CELLS_HORIZ*2 + x*2+1] = y*16 + 8;
+        }
+    }
+
+    for(int i=0; i<3*CELLS_HORIZ*CELLS_VERT; i++) {
+        colorFG[i] = 1;
+        colorBG[i] = 0;
+    }
+
+    for(int i=0; i<CELLS_HORIZ*CELLS_VERT; i++) {
+        displayChar[i] = 0;
+    }
+
 	float block[] = {
-		16, 0,
+		9, 0,
 		0, 0,
 		0, 16,
 		0, 16,
-		16, 16,
-		16, 0
+		9, 16,
+		9, 0
 	};
 
     glGenVertexArrays(1, &(vao));
     glBindVertexArray(vao);
-    glGenBuffers(6, vbo);
+    glGenBuffers(5, vbo);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	glBufferData(GL_ARRAY_BUFFER, MAX_OBJECTS * 2 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glBufferData(GL_ARRAY_BUFFER, 2*CELLS_HORIZ*CELLS_VERT * sizeof(GLfloat), centers, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	glVertexAttribDivisor(0, 1);
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-	glBufferData(GL_ARRAY_BUFFER, MAX_OBJECTS * 3 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glBufferData(GL_ARRAY_BUFFER, 3*CELLS_HORIZ*CELLS_VERT * sizeof(GLfloat), colorFG, GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glVertexAttribDivisor(1, 1);
     glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-	glBufferData(GL_ARRAY_BUFFER, MAX_OBJECTS * 3 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glBufferData(GL_ARRAY_BUFFER, 3*CELLS_HORIZ*CELLS_VERT * sizeof(GLfloat), colorBG, GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glVertexAttribDivisor(2, 1);
     glEnableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
-	glBufferData(GL_ARRAY_BUFFER, MAX_OBJECTS * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
-	glVertexAttribPointer(3, 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, 0);
+    glBufferData(GL_ARRAY_BUFFER, CELLS_HORIZ*CELLS_VERT, displayChar, GL_DYNAMIC_DRAW);
+    glVertexAttribPointer(3, 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, 0);
 	glVertexAttribDivisor(3, 1);
     glEnableVertexAttribArray(3);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
-	glBufferData(GL_ARRAY_BUFFER, MAX_OBJECTS * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
-	glVertexAttribPointer(4, 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, 0);
-	glVertexAttribDivisor(4, 1);
-    glEnableVertexAttribArray(4);
-
-	
-	glBindBuffer(GL_ARRAY_BUFFER, vbo[5]);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
     glBufferData(GL_ARRAY_BUFFER, 6*2 * sizeof(GLfloat), block, GL_STATIC_DRAW);
-    glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, 0, 0);
-	glVertexAttribDivisor(5, 0);
-    glEnableVertexAttribArray(5);
+    glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, 0, 0);
+	glVertexAttribDivisor(4, 0);
+    glEnableVertexAttribArray(4);
 
     vertexshader = glCreateShader(GL_VERTEX_SHADER);
     const GLchar *vertexsourcePtr = vertex_shader_src;
@@ -197,11 +178,6 @@ void SDL::setupGL()
     shaderprogram = glCreateProgram();
     glAttachShader(shaderprogram, vertexshader);
     glAttachShader(shaderprogram, fragmentshader);
-    //glBindAttribLocation(shaderprogram, 0, "in_Center");
-    //glBindAttribLocation(shaderprogram, 1, "inFG_Color");
-    //glBindAttribLocation(shaderprogram, 2, "inBG_Color");
-    //glBindAttribLocation(shaderprogram, 3, "in_Char");
-    //glBindAttribLocation(shaderprogram, 4, "in_Position");
     glLinkProgram(shaderprogram);
 
     glGetProgramiv(shaderprogram, GL_LINK_STATUS, (int *)&IsLinked);
@@ -256,36 +232,23 @@ void SDL::draw() {
 
 		glClear(GL_COLOR_BUFFER_BIT);
 
-        glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);		
-        glBufferSubData(GL_ARRAY_BUFFER,
-                        0,
-                        centers.size() * sizeof(GLfloat),
-                        &centers[0]);
         glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
         glBufferSubData(GL_ARRAY_BUFFER,
                         0,
-                        colorFG.size() * sizeof(GLfloat),
-                        &colorFG[0]);
+                        3*CELLS_HORIZ*CELLS_VERT*sizeof(GLfloat),
+                        colorFG);
         glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
         glBufferSubData(GL_ARRAY_BUFFER,
                         0,
-                        colorBG.size() * sizeof(GLfloat),
-                        &colorBG[0]);
+                        3*CELLS_HORIZ*CELLS_VERT*sizeof(GLfloat),
+                        colorBG);
         glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
         glBufferSubData(GL_ARRAY_BUFFER,
                         0,
-                        displaySpriteX.size(),
-                        &displaySpriteX[0]);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo[4]);
-        glBufferSubData(GL_ARRAY_BUFFER,
-                        0,
-                        displaySpriteY.size(),
-                        &displaySpriteY[0]);
+                        CELLS_HORIZ*CELLS_VERT,
+                        displayChar);
 
-		printf("drawing %zu objects\n", displaySpriteX.size());
-		
-
-        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, displaySpriteX.size());
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, CELLS_HORIZ*CELLS_VERT);
         SDL_GL_SwapWindow(window);
     }
 }
@@ -318,32 +281,21 @@ SDL::~SDL() {
 
 	SDL_GL_DeleteContext(context);
 	SDL_DestroyWindow(window);
-	IMG_Quit();
 	SDL_Quit();
 }
 
-void SDL::clearBuffers()
+void SDL::putchar(int x, int y, unsigned char c, const Color& fg, const Color& bg)
 {
-	centers.clear();
-	colorFG.clear();
-	colorBG.clear();
-	displaySpriteX.clear();
-	displaySpriteY.clear();
-}
-
-void SDL::addSprite(float x, float y, int tex_x, int tex_y, const Color& fg, const Color& bg)
-{
-	centers.push_back(x);
-	centers.push_back(HEIGHT - y - 1);
-	colorFG.push_back(fg.r);
-	colorFG.push_back(fg.g);
-	colorFG.push_back(fg.b);
-	colorBG.push_back(bg.r);
-	colorBG.push_back(bg.g);
-	colorBG.push_back(bg.b);
-	displaySpriteX.push_back(tex_x);
-	displaySpriteY.push_back(tex_y);
-	    
+    //int index = (CELLS_VERT-y-1) + x * CELLS_VERT;
+	int index = (CELLS_VERT-y-1) * CELLS_HORIZ + x;
+	displayChar[index] = c;
+	colorFG[index*3] = fg.r;
+	colorFG[index*3+1] = fg.g;
+	colorFG[index*3+2] = fg.b;
+	colorBG[index*3] = bg.r;
+	colorBG[index*3+1] = bg.g;
+	colorBG[index*3+2] = bg.b;
+    
     dirty = true;
 }
 
@@ -360,63 +312,4 @@ bool SDL::pollevent(SDL_Event *event) {
 
 int SDL::getticks() {
     return SDL_GetTicks();
-}
-
-void SDL::setTexture(const std::string& filename)
-{
-	GLuint texture;
-	auto iter = textures.find(filename);
-	
-	if (iter == textures.end())
-	{
-		// load the texture since it's not cached
-		SDL_Surface *surf = IMG_Load(filename.c_str());
-
-		SDL_LockSurface(surf);
-		if (!surf) sdldie("");
-		
-		glActiveTexture(GL_TEXTURE0);
-		glGenTextures( 1, &texture );
-		glBindTexture( GL_TEXTURE_2D, texture );
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-		printf("texture width: %d\n", surf->w);
-		printf("texture height: %d\n", surf->h);
-		printf("texture pixel format: %u\n", surf->format->format);
-
-		GLint texture_width_loc = glGetUniformLocation(shaderprogram, "texture_width" );
-		glUniform1i(texture_width_loc, surf->w);
-		GLint texture_height_loc = glGetUniformLocation(shaderprogram, "texture_height" );
-		glUniform1i(texture_height_loc, surf->h);
-		
-		assert(surf->format->format == SDL_PIXELFORMAT_ABGR8888);
-		
-		uint32_t *data = (uint32_t*)malloc(surf->w * surf->h * sizeof(uint32_t));
-		uint32_t *datap = (uint32_t*)surf->pixels;
-		int count = 0;
-		for (int y=0; y<surf->h; y++)
-		{
-			for (int x=0; x<surf->w; x++)
-			{
-				data[count++] = datap[x];
-			}
-			datap += surf->pitch/4;
-		}
-
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surf->w,
-					 surf->h, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8_REV,
-					 data);
-
-		free(data);
-		SDL_UnlockSurface(surf);
-		SDL_FreeSurface(surf);
-	}
-	else
-	{
-		// otherwise just grab the cached texture
-		texture = iter->second;
-	}
-
-	glBindTexture( GL_TEXTURE_2D, texture);
 }
