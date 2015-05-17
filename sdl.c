@@ -1,7 +1,21 @@
-#include "sdl.hpp"
+#include "sdl.h"
 
 #include "data.h"
 #include "codepage-437-hex.h"
+
+static SDL_Window* window;
+static SDL_GLContext context;
+static GLuint vao, vbo[5];
+static GLuint vertexshader, fragmentshader;
+static GLuint shaderprogram;
+static GLfloat centers[6*2*CELLS_HORIZ*CELLS_VERT];
+static GLfloat colorFG[3*CELLS_HORIZ*CELLS_VERT];
+static GLfloat colorBG[3*CELLS_HORIZ*CELLS_VERT];
+static GLubyte displayChar[CELLS_HORIZ*CELLS_VERT];
+static char dirty;
+static SDL_Event currentSDLEvent;
+static const char *program_name_s;
+static unsigned int screen_width_s, screen_height_s;
 
 static void sdldie(const char *msg)
 {
@@ -10,7 +24,7 @@ static void sdldie(const char *msg)
     exit(1);
 }
 
-void SDL::setupwindow()
+static void setupwindow()
 {
 	// init sdl
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
@@ -23,8 +37,8 @@ void SDL::setupwindow()
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-    window = SDL_CreateWindow(program_name.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
-							  screen_width, screen_height,
+    window = SDL_CreateWindow(program_name_s, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+							  screen_width_s, screen_height_s,
 							  SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     if (!window)
         sdldie("Unable to create window");
@@ -37,7 +51,7 @@ void SDL::setupwindow()
     SDL_GL_SetSwapInterval(1);
 }
 
-void SDL::setupGL()
+static void setupGL()
 {
     int IsCompiled_VS, IsCompiled_FS;
     int IsLinked;
@@ -225,10 +239,11 @@ void SDL::setupGL()
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void SDL::draw() {
-	dirty = true;
+void sdl_draw()
+{
+	dirty = TRUE;
     if(dirty) {
-        dirty = false;
+        dirty = FALSE;
 
 		glClear(GL_COLOR_BUFFER_BIT);
 
@@ -253,18 +268,21 @@ void SDL::draw() {
     }
 }
 
-SDL::SDL(const std::string &program_name, unsigned int screen_width, unsigned int screen_height)
-	: program_name(program_name),
-	  screen_width(screen_width),
-	  screen_height(screen_height)
+void
+sdl_init(const char *program_name, unsigned int screen_width, unsigned int screen_height)
 {
-    dirty = true;
+    dirty = TRUE;
 
+	program_name_s = program_name;
+	screen_width_s = screen_width;
+	screen_height_s = screen_height;
+	
     setupwindow();
     setupGL();
 }
 
-SDL::~SDL() {
+void sdl_destroy()
+{
     glUseProgram(0);
     glDisableVertexAttribArray(0);
     glDisableVertexAttribArray(1);
@@ -284,32 +302,34 @@ SDL::~SDL() {
 	SDL_Quit();
 }
 
-void SDL::putchar(int x, int y, unsigned char c, const Color& fg, const Color& bg)
+void sdl_putchar(int x, int y, unsigned char c,
+				 float fg_r, float fg_g, float fg_b,
+				 float bg_r, float bg_g, float bg_b)
 {
     //int index = (CELLS_VERT-y-1) + x * CELLS_VERT;
 	int index = (CELLS_VERT-y-1) * CELLS_HORIZ + x;
 	displayChar[index] = c;
-	colorFG[index*3] = fg.r;
-	colorFG[index*3+1] = fg.g;
-	colorFG[index*3+2] = fg.b;
-	colorBG[index*3] = bg.r;
-	colorBG[index*3+1] = bg.g;
-	colorBG[index*3+2] = bg.b;
+	colorFG[index*3] = fg_r;
+	colorFG[index*3+1] = fg_g;
+	colorFG[index*3+2] = fg_b;
+	colorBG[index*3] = bg_r;
+	colorBG[index*3+1] = bg_g;
+	colorBG[index*3+2] = bg_b;
     
-    dirty = true;
+    dirty = TRUE;
 }
 
-bool SDL::pollevent(SDL_Event *event) {
+int sdl_pollevent(SDL_Event *event) {
     int result = SDL_PollEvent(&currentSDLEvent);
 	if (result) {
 		*event = currentSDLEvent;
 		
-		return true;
+		return TRUE;
 	}
 
-	return false;
+	return FALSE;
 }
 
-int SDL::getticks() {
+int sdl_getticks() {
     return SDL_GetTicks();
 }
