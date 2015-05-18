@@ -1,6 +1,8 @@
 #ifndef __SDL_H__
 #define __SDL_H__
 
+#include <stdint.h>
+
 #include <SDL.h>
 
 #define GL_GLEXT_PROTOTYPES
@@ -31,7 +33,7 @@ void sdl_destroy();
 
 int  sdl_getticks();
 void sdl_draw();
-int  sdl_pollevent(SDL_Event* event);
+int  sdl_pollevent(int *key, uint16_t *mod);
 void sdl_putchar(int x, int y, unsigned char c,
 				 float fg_r, float fg_g, float fg_b,
 				 float bg_r, float bg_g, float bg_b);

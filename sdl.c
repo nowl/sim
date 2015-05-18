@@ -13,7 +13,6 @@ static GLfloat colorFG[3*CELLS_HORIZ*CELLS_VERT];
 static GLfloat colorBG[3*CELLS_HORIZ*CELLS_VERT];
 static GLubyte displayChar[CELLS_HORIZ*CELLS_VERT];
 static char dirty;
-static SDL_Event currentSDLEvent;
 static const char *program_name_s;
 static unsigned int screen_width_s, screen_height_s;
 
@@ -319,11 +318,14 @@ void sdl_putchar(int x, int y, unsigned char c,
     dirty = TRUE;
 }
 
-int sdl_pollevent(SDL_Event *event) {
-    int result = SDL_PollEvent(&currentSDLEvent);
-	if (result) {
-		*event = currentSDLEvent;
-		
+int sdl_pollevent(int *key, uint16_t *mod)
+{
+	SDL_Event event;
+
+    int result = SDL_PollEvent(&event);
+	if (result && event.type == SDL_KEYDOWN) {
+		*key = event.key.keysym.sym;
+		*mod = event.key.keysym.mod;
 		return TRUE;
 	}
 

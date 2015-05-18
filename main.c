@@ -27,12 +27,14 @@ int main(int argc, char *argv[])
 	
 	while (running)
 	{
-		while (sdl_pollevent(&event))
+		int sym;
+		uint16_t mod;
+		while (sdl_pollevent(&sym, &mod))
 		{
-			if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE)
+			if (sym == SDLK_ESCAPE)
 				running = FALSE;
 
-			if (event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_d)
+			if (sym == SDLK_d)
 			{
 				for (int i=0; i<10000; i++) {
 					float fg_r = RNG_f();
