@@ -13,7 +13,9 @@ TEST_OBJ = \
 	djikstra.o \
 	main.o \
 	sdl.o \
-	rng.o
+	rng.o \
+	globals.o \
+	gfx.o
 
 ALL_BIN := $(TEST_BIN)
 ALL_OBJ := $(TEST_OBJ)

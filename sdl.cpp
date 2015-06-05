@@ -25,7 +25,7 @@ void SDL::setupwindow()
 
     window = SDL_CreateWindow(program_name.c_str(), SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
 							  screen_width, screen_height,
-							  SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+							  SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
     if (!window)
         sdldie("Unable to create window");
 
@@ -82,21 +82,21 @@ void SDL::setupGL()
                  codepage437_image.height, 0, GL_RED, GL_UNSIGNED_BYTE,
                  alpha_vals);
 
-    for (int y=0; y<CELLS_VERT; y++)
+    for (int y=0; y<cells_vert; y++)
     {
-        for (int x=0; x<CELLS_HORIZ; x++)
+        for (int x=0; x<cells_horiz; x++)
         {
-			centers[y*CELLS_HORIZ*2 + x*2] = x*9 + 4.5;
-			centers[y*CELLS_HORIZ*2 + x*2+1] = y*16 + 8;
+			centers[y*cells_horiz*2 + x*2] = x*9 + 4.5;
+			centers[y*cells_horiz*2 + x*2+1] = y*16 + 8;
         }
     }
 
-    for(int i=0; i<3*CELLS_HORIZ*CELLS_VERT; i++) {
+    for(int i=0; i<3*cells_horiz*cells_vert; i++) {
         colorFG[i] = 1;
         colorBG[i] = 0;
     }
 
-    for(int i=0; i<CELLS_HORIZ*CELLS_VERT; i++) {
+    for(int i=0; i<cells_horiz*cells_vert; i++) {
         displayChar[i] = 0;
     }
 
@@ -114,25 +114,25 @@ void SDL::setupGL()
     glGenBuffers(5, vbo);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-    glBufferData(GL_ARRAY_BUFFER, 2*CELLS_HORIZ*CELLS_VERT * sizeof(GLfloat), centers, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 2*cells_horiz*cells_vert * sizeof(GLfloat), centers, GL_STATIC_DRAW);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
 	glVertexAttribDivisor(0, 1);
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
-    glBufferData(GL_ARRAY_BUFFER, 3*CELLS_HORIZ*CELLS_VERT * sizeof(GLfloat), colorFG, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 3*cells_horiz*cells_vert * sizeof(GLfloat), colorFG, GL_DYNAMIC_DRAW);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glVertexAttribDivisor(1, 1);
     glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
-    glBufferData(GL_ARRAY_BUFFER, 3*CELLS_HORIZ*CELLS_VERT * sizeof(GLfloat), colorBG, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, 3*cells_horiz*cells_vert * sizeof(GLfloat), colorBG, GL_DYNAMIC_DRAW);
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
 	glVertexAttribDivisor(2, 1);
     glEnableVertexAttribArray(2);
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
-    glBufferData(GL_ARRAY_BUFFER, CELLS_HORIZ*CELLS_VERT, displayChar, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, cells_horiz*cells_vert, displayChar, GL_DYNAMIC_DRAW);
     glVertexAttribPointer(3, 1, GL_UNSIGNED_BYTE, GL_FALSE, 0, 0);
 	glVertexAttribDivisor(3, 1);
     glEnableVertexAttribArray(3);
@@ -148,7 +148,7 @@ void SDL::setupGL()
     glShaderSource(vertexshader, 1, (const GLchar**)&vertexsourcePtr, 0);
     glCompileShader(vertexshader);
     glGetShaderiv(vertexshader, GL_COMPILE_STATUS, &IsCompiled_VS);
-    if(IsCompiled_VS == FALSE)
+    if(IsCompiled_VS == 0)
     {
        glGetShaderiv(vertexshader, GL_INFO_LOG_LENGTH, &maxLength);
        vertexInfoLog = (char *)malloc(maxLength);
@@ -164,7 +164,7 @@ void SDL::setupGL()
     glShaderSource(fragmentshader, 1, (const GLchar**)&fragmentsourcePtr, 0);
     glCompileShader(fragmentshader);
     glGetShaderiv(fragmentshader, GL_COMPILE_STATUS, &IsCompiled_FS);
-    if(IsCompiled_FS == FALSE)
+    if(IsCompiled_FS == 0)
     {
        glGetShaderiv(fragmentshader, GL_INFO_LOG_LENGTH, &maxLength);
        fragmentInfoLog = (char *)malloc(maxLength);
@@ -181,7 +181,7 @@ void SDL::setupGL()
     glLinkProgram(shaderprogram);
 
     glGetProgramiv(shaderprogram, GL_LINK_STATUS, (int *)&IsLinked);
-    if(IsLinked == FALSE)
+    if(IsLinked == 0)
     {
        glGetProgramiv(shaderprogram, GL_INFO_LOG_LENGTH, &maxLength);
        shaderProgramInfoLog = (char *)malloc(maxLength);
@@ -195,9 +195,9 @@ void SDL::setupGL()
 
     GLint mvp = glGetUniformLocation(shaderprogram, "MVP" );
 
-    float r = WIDTH;
+    float r = logical_width;
     float l = 0;
-    float t = HEIGHT;
+    float t = logical_height;
     float b = 0;
     float f = -1;
     float n = 1;
@@ -235,29 +235,39 @@ void SDL::draw() {
         glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
         glBufferSubData(GL_ARRAY_BUFFER,
                         0,
-                        3*CELLS_HORIZ*CELLS_VERT*sizeof(GLfloat),
+                        3*cells_horiz*cells_vert*sizeof(GLfloat),
                         colorFG);
         glBindBuffer(GL_ARRAY_BUFFER, vbo[2]);
         glBufferSubData(GL_ARRAY_BUFFER,
                         0,
-                        3*CELLS_HORIZ*CELLS_VERT*sizeof(GLfloat),
+                        3*cells_horiz*cells_vert*sizeof(GLfloat),
                         colorBG);
         glBindBuffer(GL_ARRAY_BUFFER, vbo[3]);
         glBufferSubData(GL_ARRAY_BUFFER,
                         0,
-                        CELLS_HORIZ*CELLS_VERT,
+                        cells_horiz*cells_vert,
                         displayChar);
 
-        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, CELLS_HORIZ*CELLS_VERT);
+        glDrawArraysInstanced(GL_TRIANGLES, 0, 6, cells_horiz*cells_vert);
         SDL_GL_SwapWindow(window);
     }
 }
 
-SDL::SDL(const std::string &program_name, unsigned int screen_width, unsigned int screen_height)
+SDL::SDL(const std::string &program_name, unsigned int screen_width, unsigned int screen_height, int cells_width, int cells_height)
 	: program_name(program_name),
 	  screen_width(screen_width),
 	  screen_height(screen_height)
 {
+    cells_horiz = cells_width;
+    cells_vert = cells_height;
+    logical_width = cells_horiz * 9;
+    logical_height = cells_vert * 16;
+
+    centers = new GLfloat [6*2*cells_horiz*cells_vert];
+    colorFG = new GLfloat [3*cells_horiz*cells_vert];
+    colorBG = new GLfloat [3*cells_horiz*cells_vert];
+    displayChar = new GLubyte [cells_horiz*cells_vert];
+
     dirty = true;
 
     setupwindow();
@@ -286,8 +296,8 @@ SDL::~SDL() {
 
 void SDL::putchar(int x, int y, unsigned char c, const Color& fg, const Color& bg)
 {
-    //int index = (CELLS_VERT-y-1) + x * CELLS_VERT;
-	int index = (CELLS_VERT-y-1) * CELLS_HORIZ + x;
+    //int index = (cells_vert-y-1) + x * cells_vert;
+	int index = (cells_vert-y-1) * cells_horiz + x;
 	displayChar[index] = c;
 	colorFG[index*3] = fg.r;
 	colorFG[index*3+1] = fg.g;
